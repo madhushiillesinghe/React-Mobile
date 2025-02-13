@@ -15,3 +15,5 @@ Before starting, make sure you have the following installed:
 - ![Alt text](assets/Customer.png)
 - **Item Mobile View Screenshot**:
 - ![Alt text](assets/Item.png)
+- **Place Order Mobile View Screenshot**:
+- ![Alt text](assets/PlaceOrder.png)
