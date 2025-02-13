@@ -1,5 +1,6 @@
 export default interface ICustomer {
-    name : string;
-    address : string;
-    email : string;
+    id?: number;
+    name: string;
+    address: string;
+    email: string;
 }
