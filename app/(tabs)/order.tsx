@@ -1,145 +1,181 @@
-import React, { useState } from 'react';
-import { View, Text, Button, FlatList, TextInput, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import IOrder from "../../model/IOrder";
-import ICustomer from "../../model/ICustomer";
-import IItem from "../../model/IItem";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Alert } from "react-native";
+import { Text, Button, TextInput, Card, List, Divider, ActivityIndicator } from "react-native-paper";
+import { Picker } from "@react-native-picker/picker";
 
-const Order = () => {
-    const [orders, setOrders] = useState<IOrder[]>([]);
-    const [selectedCustomer, setSelectedCustomer] = useState<string>('');
-    const [selectedItem, setSelectedItem] = useState<string>('');
-    const [quantity, setQuantity] = useState<string>('1');
-    const [cart, setCart] = useState<IItem[]>([]);
-    const [editIndex, setEditIndex] = useState<number | null>(null);
+const OrderScreen = () => {
+    const [selectedCustomer, setSelectedCustomer] = useState<string>("");
+    const [customerEmail, setCustomerEmail] = useState<string>("");
+    const [selectedItem, setSelectedItem] = useState<string>("");
+    const [unitPrice, setUnitPrice] = useState<string>("");
+    const [quantity, setQuantity] = useState<string>("1");
+    const [cart, setCart] = useState<Array<any>>([]);
+    const [customers, setCustomers] = useState<Array<any>>([]);
+    const [items, setItems] = useState<Array<any>>([]);
+    const [loading, setLoading] = useState<boolean>(true);
 
-    const customers: ICustomer[] = [
-        { id: 1, name: 'John Doe', address: '123 Main St', email: 'john@example.com' },
-        { id: 2, name: 'Jane Smith', address: '456 Elm St', email: 'jane@example.com' },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [customersRes, itemsRes] = await Promise.all([
+                    fetch("http://192.168.1.106:5000/customer").then(res => res.json()),
+                    fetch("http://192.168.1.106:5000/item").then(res => res.json())
+                ]);
+                setCustomers(customersRes);
+                setItems(itemsRes);
+            } catch (error) {
+                Alert.alert("Error", "Failed to load data");
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
-    const items: IItem[] = [
-        { code: 1, description: 'Apple', unitPrice: 2, quantity: 0 },
-        { code: 2, description: 'Banana', unitPrice: 1, quantity: 0 },
-        { code: 3, description: 'Orange', unitPrice: 3, quantity: 0 },
-    ];
+    const handleCustomerChange = (value: string) => {
+        setSelectedCustomer(value);
+        const customer = customers.find(c => c.CustomerID.toString() === value);
+        setCustomerEmail(customer ? customer.Email : "");
+    };
+
+    const handleItemChange = (value: string) => {
+        setSelectedItem(value);
+        const item = items.find(i => i.ItemID.toString() === value);
+        setUnitPrice(item ? item.Price.toString() : "");
+    };
 
     const addToCart = () => {
-        if (!selectedItem || quantity === '' || Number(quantity) <= 0) return;
-        const item = items.find(i => i.code?.toString() === selectedItem);
+        const item = items.find(i => i.ItemID.toString() === selectedItem);
         if (item) {
-            if (editIndex !== null) {
-                const updatedCart = [...cart];
-                updatedCart[editIndex] = { ...item, quantity: Number(quantity) };
-                setCart(updatedCart);
-                setEditIndex(null);
-            } else {
-                setCart([...cart, { ...item, quantity: Number(quantity) }]);
-            }
-            setSelectedItem('');
-            setQuantity('1');
+            setCart([...cart, { ...item, quantity: Number(quantity) }]);
+            setSelectedItem("");
+            setQuantity("1");
+            setUnitPrice("");
         }
     };
 
-    const handlePlaceOrder = () => {
-        if (!selectedCustomer || cart.length === 0) return;
-        const newOrder: IOrder = {
-            id: Date.now(),
-            customerId: selectedCustomer,
-            items: cart,
+    const placeOrder = async () => {
+        if (cart.length === 0) {
+            Alert.alert("Error", "Your cart is empty!");
+            return;
+        }
+
+        const orderData = {
+            customer: { CustomerID: selectedCustomer },
+            orderDate: new Date(),
+            orderDetails: cart.map(item => ({
+                ItemID: item.ItemID,
+                Quantity: item.quantity,
+                Price: item.Price
+            })),
         };
-        setOrders([...orders, newOrder]);
-        setCart([]);
-        setSelectedCustomer('');
+
+        try {
+            const response = await fetch("http://192.168.1.106:5000/order/placeorder", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            if (response.ok) {
+                Alert.alert("Success", "Order placed successfully!");
+                setCart([]); // Clear the cart after placing the order
+            } else {
+                throw new Error("Failed to place the order.");
+            }
+        } catch (error) {
+            Alert.alert("Error", error.message || "An error occurred while placing the order.");
+        }
+
     };
 
-
-    const getTotalPrice = () => {
-        return cart.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
-    };
-
-    const handleEditItem = (index: number) => {
-        setEditIndex(index);
-        setSelectedItem(cart[index].code?.toString() || '');
-        setQuantity(cart[index].quantity.toString());
-    };
-
-    const handleDeleteItem = (index: number) => {
-        const updatedCart = cart.filter((_, i) => i !== index);
-        setCart(updatedCart);
-    };
+    if (loading) {
+        return <ActivityIndicator animating={true} size="large" style={{ marginTop: 50 }} />;
+    }
 
     return (
-        <View style={{ padding: 20 }}>
-            <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Place Order</Text>
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
+            <Text variant="titleLarge" style={{ textAlign: "center", marginBottom: 10 }}>
+                Place Order
+            </Text>
 
-            {/* Customer Selection */}
-            <Text style={{ fontSize: 18, marginTop: 10 }}>Select Customer:</Text>
-            <Picker selectedValue={selectedCustomer} onValueChange={setSelectedCustomer}>
-                <Picker.Item label="Select Customer" value="" />
-                {customers.map((customer) => (
-                    <Picker.Item key={customer.id} label={customer.name} value={customer.email.toString()} />
-                ))}
-            </Picker>
+            {/* Select Customer */}
+            <Text variant="labelLarge">Select Customer:</Text>
+            <Card style={{ marginBottom: 10 }}>
+                <Picker selectedValue={selectedCustomer} onValueChange={handleCustomerChange}>
+                    <Picker.Item label="Select Customer" value="" />
+                    {customers.map(c => (
+                        <Picker.Item key={c.CustomerID} label={c.Name} value={c.CustomerID.toString()} />
+                    ))}
+                </Picker>
+            </Card>
 
-            {/* Item Selection */}
-            <Text style={{ fontSize: 18, marginTop: 10 }}>Select Item:</Text>
-            <Picker selectedValue={selectedItem} onValueChange={setSelectedItem}>
-                <Picker.Item label="Select Item" value="" />
-                {items.map((item) => (
-                    <Picker.Item key={item.code} label={`${item.description} - $${item.unitPrice}`} value={item.code?.toString()} />
-                ))}
-            </Picker>
+            {/* Customer Email */}
+            <Text variant="labelLarge">Email:</Text>
+            <TextInput
+                mode="outlined"
+                value={customerEmail}
+                editable={false}
+                style={{ marginBottom: 10 }}
+            />
+
+            {/* Select Item */}
+            <Text variant="labelLarge">Select Item:</Text>
+            <Card style={{ marginBottom: 10 }}>
+                <Picker selectedValue={selectedItem} onValueChange={handleItemChange}>
+                    <Picker.Item label="Select Item" value="" />
+                    {items.map(i => (
+                        <Picker.Item key={i.ItemID} label={`${i.Name} - $${i.Price}`} value={i.ItemID.toString()} />
+                    ))}
+                </Picker>
+            </Card>
+
+            {/* Unit Price */}
+            <Text variant="labelLarge">Unit Price:</Text>
+            <TextInput
+                mode="outlined"
+                value={unitPrice}
+                editable={false}
+                style={{ marginBottom: 10 }}
+            />
 
             {/* Quantity Input */}
-            <Text style={{ fontSize: 18, marginTop: 10 }}>Quantity:</Text>
+            <Text variant="labelLarge">Quantity:</Text>
             <TextInput
+                mode="outlined"
                 value={quantity}
                 onChangeText={setQuantity}
                 keyboardType="numeric"
-                style={{ borderWidth: 1, padding: 5, marginBottom: 10 }}
+                style={{ marginBottom: 10 }}
             />
 
             {/* Add to Cart Button */}
-            <Button title="Add to Cart" onPress={addToCart} />
+            <Button mode="contained" onPress={addToCart} style={{ marginBottom: 15 }}>
+                Add to Cart
+            </Button>
 
-            {/* Cart Items Table */}
-            <Text style={{ fontSize: 20, marginTop: 20, fontWeight: 'bold' }}>Cart Items</Text>
-            <FlatList
-                data={cart}
-                keyExtractor={(item) => item.code?.toString() || '0'}
-                ListHeaderComponent={
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 }}>
-                        <Text style={{ fontWeight: 'bold' }}>Item Description</Text>
-                        <Text style={{ fontWeight: 'bold' }}>Quantity</Text>
-                        <Text style={{ fontWeight: 'bold' }}>Action</Text>
-                    </View>
-                }
-                renderItem={({ item, index }) => (
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 }}>
-                        <Text>{item.description} (x{item.quantity})</Text>
-                        <Text>{item.quantity}</Text>
-                        <View style={{ flexDirection: 'row' }}>
-                            <TouchableOpacity onPress={() => handleEditItem(index)}>
-                                <Text style={{ color: 'blue', marginRight: 10 }}>Edit</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleDeleteItem(index)}>
-                                <Text style={{ color: 'red' }}>Delete</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                )}
-            />
-
-            {/* Place Order Button */}
-            <Button title="Place Order" onPress={handlePlaceOrder} />
-
-            {/* Total Price Display */}
-            <Text style={{ fontSize: 18, marginTop: 10, fontWeight: 'bold' }}>
-                Total Price: ${getTotalPrice()}
-            </Text>
-        </View>
+            {/* Cart List */}
+            {cart.length > 0 && (
+                <Card style={{ marginBottom: 20 }}>
+                    <Card.Title title="Cart Items" />
+                    {cart.map((item, index) => (
+                        <List.Item
+                            key={index}
+                            title={`${item.Name} (x${item.quantity})`}
+                            description={`$${item.Price} each`}
+                        />
+                    ))}
+                    <Divider />
+                    <Card.Actions>
+                        <Button mode="contained" onPress={placeOrder}>Place Order</Button>
+                    </Card.Actions>
+                </Card>
+            )}
+        </ScrollView>
     );
 };
 
-export default Order;
+export default OrderScreen;
