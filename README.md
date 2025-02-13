@@ -10,4 +10,8 @@ Before starting, make sure you have the following installed:
 - **React Native CLI**: [Install React Native CLI](https://reactnative.dev/docs/environment-setup)
 - **Android Studio**: [Install Android Studio](https://developer.android.com/studio)
 - **Expo CLI (optional)**: [Install Expo CLI](https://docs.expo.dev/get-started/installation/)
-![Alt text](C:\Users\Asus\Pictures\Screenshots\Screenshot 2025-02-13 144109.png)
+  
+-  **Customer Mobile View Screenshot**:
+- ![Alt text](assets/Customer.png)
+- **Item Mobile View Screenshot**:
+- ![Alt text](assets/Item.png)
