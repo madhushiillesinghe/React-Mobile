@@ -1,6 +1,6 @@
-export default interface ICustomer {
-    code?: number;
-    description: string;
-    quantity: string;
-    unitPrice:number;
+export default interface IItem {
+    ItemID: number;
+    Name: string;
+    Quantity: number;
+    Price: number;
 }
