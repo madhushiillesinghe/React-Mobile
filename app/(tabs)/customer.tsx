@@ -20,7 +20,7 @@ const CustomerForm = () => {
 
     const fetchCustomers = async () => {
         try {
-            const response = await fetch("http://192.168.1.106:5000/customer");
+            const response = await fetch("http://192.168.186.102:5000/customer");
             const data = await response.json();
             setCustomers(data);
         } catch (error) {
@@ -38,7 +38,7 @@ const CustomerForm = () => {
     const handleAddOrUpdateCustomer = async () => {
         if (isEdit && editId !== null) {
             try {
-                const response = await fetch(`http://192.168.1.106:5000/customer/update/${editId}`, {
+                const response = await fetch(`http://192.168.186.102:5000/customer/update/${editId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData),
@@ -54,7 +54,7 @@ const CustomerForm = () => {
             }
         } else {
             try {
-                const response = await fetch('http://192.168.1.106:5000/customer/add', {
+                const response = await fetch('http://192.168.186.102:5000/customer/add', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData),
@@ -73,7 +73,7 @@ const CustomerForm = () => {
 
     const handleDeleteCustomer = async (id: number) => {
         try {
-            await fetch(`http://192.168.1.106:5000/customer/delete/${id}`, {
+            await fetch(`http://192.168.186.102:5000/customer/delete/${id}`, {
                 method: 'DELETE',
             });
             setCustomers(customers.filter((customer) => customer.CustomerID !== id));

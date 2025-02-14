@@ -17,3 +17,5 @@ Before starting, make sure you have the following installed:
 - ![Alt text](assets/Item.png)
 - **Place Order Mobile View Screenshot**:
 - ![Alt text](assets/PlaceOrder.png)
+-**Dashboard Mobile View Screenshot**:
+- ![Alt text](assets/Dashboard.png)

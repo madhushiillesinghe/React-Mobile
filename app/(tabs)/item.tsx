@@ -22,7 +22,7 @@ const ItemForm = () => {
     // Fetch all items from the backend
     const fetchItems = async () => {
         try {
-            const response = await fetch('http://192.168.1.106:5000/item');
+            const response = await fetch('http://192.168.186.102:5000/item');
             const data = await response.json();
             setItems(data);
         } catch (err) {
@@ -35,7 +35,7 @@ const ItemForm = () => {
         if (isEdit && editCode !== null) {
             // Update item
             try {
-                const response = await fetch(`http://192.168.1.106:5000/item/update/${editCode}`, {
+                const response = await fetch(`http://192.168.186.102:5000/item/update/${editCode}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ const ItemForm = () => {
         } else {
             // Add new item
             try {
-                const response = await fetch('http://192.168.1.106:5000/item/add', {
+                const response = await fetch('http://192.168.186.102:5000/item/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ const ItemForm = () => {
     // Delete an item
     const handleDeleteItem = async (id: number) => {
         try {
-            await fetch(`http://192.168.1.106:5000/item/delete/${id}`, {
+            await fetch(`http://192.168.186.102:5000/item/delete/${id}`, {
                 method: 'DELETE',
             });
             // Remove the item from the state

@@ -18,8 +18,8 @@ const OrderScreen = () => {
         const fetchData = async () => {
             try {
                 const [customersRes, itemsRes] = await Promise.all([
-                    fetch("http://192.168.1.106:5000/customer").then(res => res.json()),
-                    fetch("http://192.168.1.106:5000/item").then(res => res.json())
+                    fetch("http://192.168.186.102:5000/customer").then(res => res.json()),
+                    fetch("http://192.168.186.102:5000/item").then(res => res.json())
                 ]);
                 setCustomers(customersRes);
                 setItems(itemsRes);
@@ -72,7 +72,7 @@ const OrderScreen = () => {
         };
 
         try {
-            const response = await fetch("http://192.168.1.106:5000/order/placeorder", {
+            const response = await fetch("http://192.168.186.102:5000/order/placeorder", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
